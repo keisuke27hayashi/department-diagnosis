@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>部署適性診断</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f7f7f7;
+      padding: 20px;
+    }
+    .container {
+      max-width: 700px;
+      margin: auto;
+      background: #fff;
+      padding: 24px;
+      border-radius: 8px;
+    }
+    h1 {
+      text-align: center;
+    }
+    .question {
+      margin-bottom: 24px;
+    }
+    .question p {
+      font-weight: bold;
+    }
+    label {
+      display: block;
+      margin: 6px 0;
+      cursor: pointer;
+    }
+    button {
+      display: block;
+      margin: 30px auto 0;
+      padding: 12px 24px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .result {
+      margin-top: 30px;
+      padding: 20px;
+      background: #eef3ff;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>部署適性診断</h1>
+  <p>正解・不正解はありません。直感で答えてください。</p>
+
+  <form id="diagnosisForm"></form>
+
+  <button onclick="calculateResult()">診断する</button>
+
+  <div id="result" class="result" style="display:none;"></div>
+</div>
+
+<script>
+const departments = {
+  operation: { name: "運営", score: 0 },
+  progress: { name: "進行", score: 0 },
+  admin: { name: "事務", score: 0 },
+  pr: { name: "広報", score: 0 },
+  creative: { name: "クリエイティブ", score: 0 },
+  management: { name: "マネジメント", score: 0 },
+  casting: { name: "キャスティング", score: 0 },
+  sales: { name: "営業", score: 0 }
+};
+
+const questions = [
+  {
+    text: "イベントでは全体がうまく回っているか気になる",
+    scores: { operation: 2, progress: 1 }
+  },
+  {
+    text: "時間や順番が決まっている場面でも落ち着いて対応したい",
+    scores: { progress: 2, operation: 1 }
+  },
+  {
+    text: "数字やチェック作業は苦にならない",
+    scores: { admin: 2, operation: 1 }
+  },
+  {
+    text: "SNSでどう発信すれば伝わるか考えるのが楽しい",
+    scores: { pr: 2, sales: 1 }
+  },
+  {
+    text: "イラストや動画など、何かを作る時間に集中できる",
+    scores: { creative: 2 }
+  },
+  {
+    text: "困っていそうな人を見ると声をかけたくなる",
+    scores: { management: 2, casting: 1 }
+  },
+  {
+    text: "初対面の人とも必要な連絡を丁寧に取れる",
+    scores: { casting: 2, sales: 1 }
+  },
+  {
+    text: "新しい企画やアイデアを考えるのが好き",
+    scores: { sales: 2, operation: 1 }
+  }
+];
+
+const form = document.getElementById("diagnosisForm");
+
+questions.forEach((q, index) => {
+  const div = document.createElement("div");
+  div.className = "question";
+  div.innerHTML = `
+    <p>Q${index + 1}. ${q.text}</p>
+    <label><input type="radio" name="q${index}" value="2"> とてもそう思う</label>
+    <label><input type="radio" name="q${index}" value="1"> ややそう思う</label>
+    <label><input type="radio" name="q${index}" value="0"> あまりそう思わない</label>
+    <label><input type="radio" name="q${index}" value="0"> そう思わない</label>
+  `;
+  form.appendChild(div);
+});
+
+function calculateResult() {
+  // スコア初期化
+  Object.values(departments).forEach(dep => dep.score = 0);
+
+  questions.forEach((q, index) => {
+    const answer = document.querySelector(`input[name="q${index}"]:checked`);
+    if (!answer) return;
+
+    const value = Number(answer.value);
+
+    Object.keys(q.scores).forEach(depKey => {
+      departments[depKey].score += q.scores[depKey] * value;
+    });
+  });
+
+  const sorted = Object.values(departments)
+    .sort((a, b) => b.score - a.score);
+
+  const resultDiv = document.getElementById("result");
+  resultDiv.style.display = "block";
+  resultDiv.innerHTML = `
+    <h2>診断結果</h2>
+    <p>
+      あなたに最も向いている部署は
+      <strong>${sorted[0].name}</strong> です。
+    </p>
+    <p>
+      次に <strong>${sorted[1].name}</strong> への適性も高い傾向があります。
+    </p>
+    <p style="font-size: 0.9em;">
+      ※この診断はあくまで傾向を示すものです。
+    </p>
+  `;
+}
+</script>
+
+</body>
+</html>
